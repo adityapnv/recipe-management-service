@@ -7,6 +7,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.criteria.Predicate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -70,15 +72,28 @@ public class RecipeServiceImpl implements RecipeService {
         }
 
         if (filterRequest.getIncludeIngredients() != null && !filterRequest.getIncludeIngredients().isEmpty()) {
-            spec = spec.and((root, query, cb) -> root.get("ingredients").in(filterRequest.getIncludeIngredients()));
+            spec = spec.and((root, query, cb) -> {
+                List<Predicate> ingredientPredicates = new ArrayList<>();
+                for (String ingredient : filterRequest.getIncludeIngredients()) {
+                    ingredientPredicates.add(cb.isMember(ingredient, root.get("ingredients")));
+                }
+                return cb.and(ingredientPredicates.toArray(new Predicate[0]));
+            });
         }
 
         if (filterRequest.getExcludeIngredients() != null && !filterRequest.getExcludeIngredients().isEmpty()) {
-            spec = spec.and((root, query, cb) -> cb.not(root.get("ingredients").in(filterRequest.getExcludeIngredients())));
+            spec = spec.and((root, query, cb) -> {
+                List<Predicate> ingredientPredicates = new ArrayList<>();
+                for (String ingredient : filterRequest.getExcludeIngredients()) {
+                    ingredientPredicates.add(cb.isNotMember(ingredient, root.get("ingredients")));
+                }
+                return cb.and(ingredientPredicates.toArray(new Predicate[0]));
+            });
         }
 
         if (filterRequest.getSearchText() != null && !filterRequest.getSearchText().isEmpty()) {
-            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("instructions")), "%" + filterRequest.getSearchText().toLowerCase() + "%"));
+            String searchText = "%" + filterRequest.getSearchText().toLowerCase() + "%";
+            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("instructions")), searchText));
         }
 
         return recipeRepository.findAll(spec);

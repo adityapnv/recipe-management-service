@@ -1,9 +1,11 @@
 package com.abnamro.recipemanagement.domain;
 
+import javax.validation.constraints.Positive;
 import java.util.List;
 
 public class RecipeFilterRequest {
     private Boolean isVegetarian;
+    @Positive
     private Integer servings;
     private List<String> includeIngredients;
     private List<String> excludeIngredients;
