@@ -40,7 +40,6 @@ public class Recipe {
     @ElementCollection
     @NotEmpty(message = "Recipe without ingredients is not possible")
     private List<String> ingredients;
-    @Column(length = 255)
     @NotBlank(message = "Instructions cannot be blank")
     @Size(max = RecipeManagementUtil.MAX_LENGTH_INSTRUCTION, message = "Instructions must be less than 255 chars")
     @Pattern(regexp = RecipeManagementUtil.PATTERN_INSTRUCTIONS, message = "Instructions must contain letters and numbers")
