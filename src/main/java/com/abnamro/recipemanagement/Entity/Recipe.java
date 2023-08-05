@@ -12,12 +12,18 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.validation.constraints.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 public class Recipe {
+
     @JsonIgnore
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,39 +40,43 @@ public class Recipe {
     @ElementCollection
     @NotEmpty(message = "Recipe without ingredients is not possible")
     private List<String> ingredients;
-    @Column(length = 1000)
+    @Column(length = 255)
+    @NotBlank(message = "Instructions cannot be blank")
     @Size(max = RecipeManagementUtil.MAX_LENGTH_INSTRUCTION, message = "Instructions must be less than 255 chars")
     @Pattern(regexp = RecipeManagementUtil.PATTERN_INSTRUCTIONS, message = "Instructions must contain letters and numbers")
     private String instructions;
+    @JsonIgnore
     @Column(updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
-
+    @JsonIgnore
     @Column
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-
+    @JsonProperty
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
-
+    @JsonIgnore
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
-
+    @JsonProperty
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
-
+    @JsonIgnore
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
+    @JsonProperty
     public Long getId() {
         return id;
     }
 
+    @JsonIgnore
     public void setId(Long id) {
         this.id = id;
     }

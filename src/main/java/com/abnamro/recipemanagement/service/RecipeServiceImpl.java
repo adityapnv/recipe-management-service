@@ -2,7 +2,9 @@ package com.abnamro.recipemanagement.service;
 
 import com.abnamro.recipemanagement.Entity.Recipe;
 import com.abnamro.recipemanagement.domain.RecipeFilterRequest;
+import com.abnamro.recipemanagement.exception.RecipeNotFoundException;
 import com.abnamro.recipemanagement.repository.RecipeRepository;
+import com.abnamro.recipemanagement.util.ErrorMessage;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +29,8 @@ public class RecipeServiceImpl implements RecipeService {
 
     @Override
     public Recipe getRecipeById(Long id) {
-        return recipeRepository.findById(id).orElse(null);
+        return recipeRepository.findById(id).orElseThrow(()
+                -> new RecipeNotFoundException(ErrorMessage.RECIPE_NOT_FOUND + id));
     }
 
     @Override
@@ -45,8 +48,10 @@ public class RecipeServiceImpl implements RecipeService {
             existingRecipe.setIngredients(updatedRecipe.getIngredients());
             existingRecipe.setInstructions(updatedRecipe.getInstructions());
             return recipeRepository.save(existingRecipe);
+        } else {
+            throw new RecipeNotFoundException(ErrorMessage.RECIPE_NOT_FOUND + id);
         }
-        return null;
+
     }
 
     @Override
@@ -55,8 +60,9 @@ public class RecipeServiceImpl implements RecipeService {
         if (existingRecipe != null) {
             recipeRepository.delete(existingRecipe);
             return true;
+        } else {
+            throw new RecipeNotFoundException(ErrorMessage.RECIPE_NOT_FOUND + id);
         }
-        return false;
     }
 
     @Override
