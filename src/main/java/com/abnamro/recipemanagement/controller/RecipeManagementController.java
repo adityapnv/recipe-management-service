@@ -73,23 +73,19 @@ public class RecipeManagementController {
     public ResponseEntity<List<Recipe>> searchRecipes(
 
             @RequestParam(value = "isVegetarian", required = false) Boolean isVegetarian,
-            @Pattern(regexp = "^[0-9]+$", message = "Only numbers are allowed for servings")
-            @Positive(message = "servings must be positive.")
             @RequestParam(value = "servings", required = false) Integer servings,
             @RequestParam(value = "includeIngredients", required = false)
-            @Validated @ValidIngredients List<String> includeIngredients,
+            @ValidIngredients List<String> includeIngredients,
             @RequestParam(value = "excludeIngredients", required = false)
-            @Validated @ValidIngredients List<String> excludeIngredients,
-            @Size(max = RecipeManagementUtil.MAX_LENGTH_INSTRUCTION, message = "Instructions must be less than 255 chars")
-            @Pattern(regexp = RecipeManagementUtil.PATTERN_INSTRUCTIONS, message = "Instructions must contain letters and numbers")
+            @ValidIngredients List<String> excludeIngredients,
             @RequestParam(value = "searchText", required = false) String searchText) {
 
         RecipeFilterRequest filterRequest = new RecipeFilterRequest();
         filterRequest.setIsVegetarian(isVegetarian);
-        filterRequest.setServings(servings);
+        filterRequest.setServings(RecipeManagementUtil.validateServings(servings));
         filterRequest.setIncludeIngredients(includeIngredients);
         filterRequest.setExcludeIngredients(excludeIngredients);
-        filterRequest.setSearchText(searchText);
+        filterRequest.setSearchText(RecipeManagementUtil.validateSearchText(searchText));
 
         List<Recipe> filteredRecipes = recipeService.searchRecipes(filterRequest);
         return ResponseEntity.ok(filteredRecipes);

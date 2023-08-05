@@ -44,6 +44,11 @@ public class RecipeManagementExceptionHandler {
         return getErrorResponseResponseEntity(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
+    @ExceptionHandler(RecipeInvalidFilterException.class)
+    public ResponseEntity<ErrorResponse> handleRecipeInvalidFilterException(RecipeInvalidFilterException ex) {
+        return getErrorResponseResponseEntity(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     @ExceptionHandler(value = InvalidFormatException.class)
     public final ResponseEntity<ErrorResponse> httpMessageNotReadable(InvalidFormatException ex) {
         String failedPaths = ex.getPath().stream().map(JsonMappingException.Reference::getFieldName).collect(Collectors.joining());

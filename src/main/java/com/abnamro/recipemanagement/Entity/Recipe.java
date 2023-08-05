@@ -1,6 +1,7 @@
 package com.abnamro.recipemanagement.Entity;
 
 import com.abnamro.recipemanagement.util.RecipeManagementUtil;
+import com.abnamro.recipemanagement.util.ValidIngredients;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.annotations.CreationTimestamp;
@@ -39,6 +40,7 @@ public class Recipe {
     private int servings;
     @ElementCollection
     @NotEmpty(message = "Recipe without ingredients is not possible")
+    @ValidIngredients
     private List<String> ingredients;
     @NotBlank(message = "Instructions cannot be blank")
     @Size(max = RecipeManagementUtil.MAX_LENGTH_INSTRUCTION, message = "Instructions must be less than 255 chars")

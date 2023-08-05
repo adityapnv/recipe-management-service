@@ -24,7 +24,11 @@ public class RecipeServiceImpl implements RecipeService {
 
     @Override
     public List<Recipe> getAllRecipes() {
-        return recipeRepository.findAll();
+        List<Recipe> recipes = recipeRepository.findAll();
+        if (recipes.isEmpty()){
+            throw new RecipeNotFoundException(ErrorMessage.RECIPE_NOT_FOUND);
+        }
+        return recipes;
     }
 
     @Override
@@ -102,7 +106,11 @@ public class RecipeServiceImpl implements RecipeService {
             spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("instructions")), searchText));
         }
 
-        return recipeRepository.findAll(spec);
+        List<Recipe> recipes = recipeRepository.findAll(spec);
+        if (recipes.isEmpty()){
+            throw new RecipeNotFoundException(ErrorMessage.RECIPE_NOT_FOUND);
+        }
+        return recipes;
     }
 
 
