@@ -1,6 +1,6 @@
 # Recipe Management API
 
-The Recipe Management API is a Java application that allows users to manage favorite recipes. It provides RESTful endpoints for adding, updating, removing, and fetching recipes. Additionally, users can filter available recipes based on various criteria.
+The Recipe Management API is a Java application that allows users to manage favorite recipes. It provides Restful endpoints for adding, updating, removing, and fetching recipes. Additionally, users can filter available recipes based on various criteria.
 
 ## Table of Contents
 
@@ -27,6 +27,24 @@ The Recipe Management API provides the following features:
     - Specific ingredients (either include or exclude).
     - Text search within the instructions (either include or exclude).
 
+Note: the endpoint /recipes/filter, and the query parameters are used to specify the filtering criteria. we can include or exclude any combination of these parameters to tailor search.
+
+vegetarian (boolean): Filter recipes by whether they are vegetarian or not.
+
+servings (integer): Filter recipes by the number of servings.
+
+includeIngredients (list of strings): Include recipes that contain any of the specified ingredients.
+
+excludeIngredients (list of strings): Exclude recipes that contain any of the specified ingredients.
+
+searchText (string): Filter recipes based on a text search within the instructions.
+
+excludeInstructions (string): Exclude recipes with instructions that contain the specified text.
+
+name (string): Filter recipes based on a text search within the recipe name.
+
+excludeName (string): Exclude recipes with names that contain the specified text.
+
 ## Endpoints
 
 The following are the available endpoints:
@@ -37,6 +55,47 @@ The following are the available endpoints:
 - `PUT /recipes/{id}`: Update an existing recipe.
 - `DELETE /recipes/{id}`: Remove a recipe.
 - `GET /recipes/filter`: Filter recipes based on criteria (query parameters).
+
+### More Info On Filter Recipes End Point
+
+Filter available recipes based on criteria such as vegetarian, servings, ingredients, instructions, and name.
+
+- **URL**: `/recipes/filter`
+- **Method**: GET
+- **Request Parameters**:
+   - `vegetarian` (boolean): Filter recipes by whether they are vegetarian or not.
+   - `servings` (integer): Filter recipes by the number of servings.
+   - `includeIngredients` (list of strings): Include recipes that contain any of the specified ingredients.
+   - `excludeIngredients` (list of strings): Exclude recipes that contain any of the specified ingredients.
+   - `searchText` (string): Filter recipes based on a text search within the instructions.
+   - `excludeInstructions` (string): Exclude recipes with instructions that contain the specified text.
+   - `name` (string): Filter recipes based on a text search within the recipe name.
+   - `excludeName` (string): Exclude recipes with names that contain the specified text.
+- **Response**: A list of recipes that match the specified criteria.
+
+**Example Request:**
+GET /recipes/filter?vegetarian=true&servings=4&includeIngredients=Tomatoes&excludeIngredients=Salmon&searchText=oven&excludeInstructions=fry&name=Pasta&excludeName=Spaghetti
+
+**Example Response:**
+[
+{
+"id": 1,
+"name": "Delicious Pasta",
+"isVegetarian": true,
+"servings": 4,
+"ingredients": ["Pasta", "Tomatoes", "Onions", ...],
+"instructions": "..."
+},
+{
+"id": 2,
+"name": "Veggie Stir-Fry",
+"isVegetarian": true,
+"servings": 3,
+"ingredients": ["Broccoli", "Carrots", "Peppers", ...],
+"instructions": "..."
+},
+...
+]
 
 ## Technologies Used
 
