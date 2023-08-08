@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidIngredients {
-    String message() default "Invalid ingredient.";
+    String message() default "Invalid ingredients provided";
 
     Class<?>[] groups() default {};
 

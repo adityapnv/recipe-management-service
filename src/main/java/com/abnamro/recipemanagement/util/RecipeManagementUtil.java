@@ -26,7 +26,7 @@ public class RecipeManagementUtil {
 
     public static final String PATTERN_POSITIVE_NUMBER = "^(?!0$)[1-9][0-9]*$";
 
-    public static Integer validateServings(Integer servings) {
+    public static Integer validateOptionalServings(Integer servings) {
         if(servings == null || isValidPositiveNumber(String.valueOf(servings))){
             return servings;
         } else {
@@ -34,9 +34,17 @@ public class RecipeManagementUtil {
         }
     }
 
-    public static String validateSearchText(String searchText) {
+    public static String validateOptionalSearchText(String searchText) {
         if(searchText == null || searchText.matches(PATTERN_INSTRUCTIONS)){
             return searchText;
+        } else {
+            throw new RecipeInvalidFilterException();
+        }
+    }
+
+    public static String validateOptionalName(String name) {
+        if(name == null || name.matches(PATTERN_STRINGS)){
+            return name;
         } else {
             throw new RecipeInvalidFilterException();
         }

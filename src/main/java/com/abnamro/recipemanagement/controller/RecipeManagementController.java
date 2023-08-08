@@ -2,6 +2,7 @@ package com.abnamro.recipemanagement.controller;
 
 import com.abnamro.recipemanagement.Entity.Recipe;
 import com.abnamro.recipemanagement.domain.RecipeFilterRequest;
+import com.abnamro.recipemanagement.domain.RecipeRequest;
 import com.abnamro.recipemanagement.service.RecipeService;
 import com.abnamro.recipemanagement.util.RecipeManagementUtil;
 import com.abnamro.recipemanagement.util.ValidIngredients;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.util.List;
 
@@ -41,49 +43,54 @@ public class RecipeManagementController {
 
     @PostMapping
     @Transactional
-    public ResponseEntity<Recipe> addRecipe(@Valid @RequestBody Recipe recipe) {
-        Recipe addedRecipe = recipeService.addRecipe(recipe);
-        return new ResponseEntity<>(addedRecipe, HttpStatus.CREATED);
+    public ResponseEntity<Recipe> addRecipe(@Valid @RequestBody RecipeRequest recipeRequest) {
+        Recipe recipe = recipeService.addRecipe(recipeRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(recipe);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Recipe> getRecipeById(@PathVariable("id") @Positive Long id) {
+    public ResponseEntity<Recipe> getRecipeById(@PathVariable @Positive Long id) {
         Recipe recipe = recipeService.getRecipeById(id);
         return ResponseEntity.ok(recipe);
     }
 
     @PutMapping("/{id}")
     @Transactional
-    public ResponseEntity<Recipe> updateRecipe(@PathVariable("id") @Positive Long id,
-                                               @Valid @RequestBody Recipe updatedRecipe) {
-        Recipe recipe = recipeService.updateRecipe(id, updatedRecipe);
-        return ResponseEntity.ok(recipe);
+    public ResponseEntity<Recipe> updateRecipe(@PathVariable @Positive @NotNull Long id,
+            @Valid @RequestBody RecipeRequest recipeRequest) {
+        Recipe updatedRecipe = recipeService.updateRecipe(id, recipeRequest);
+        return ResponseEntity.ok(updatedRecipe);
     }
 
     @DeleteMapping("/{id}")
     @Transactional
-    public ResponseEntity<String> deleteRecipe(@PathVariable("id") @Positive Long id) {
+    public ResponseEntity<String> deleteRecipe(@PathVariable @Positive @NotNull Long id) {
         recipeService.removeRecipe(id);
         return ResponseEntity.ok("Recipe deleted successfully.");
     }
 
     @GetMapping("/filter")
     public ResponseEntity<List<Recipe>> searchRecipes(
-
             @RequestParam(value = "isVegetarian", required = false) Boolean isVegetarian,
             @RequestParam(value = "servings", required = false) Integer servings,
             @RequestParam(value = "includeIngredients", required = false)
             @ValidIngredients List<String> includeIngredients,
             @RequestParam(value = "excludeIngredients", required = false)
             @ValidIngredients List<String> excludeIngredients,
-            @RequestParam(value = "searchText", required = false) String searchText) {
+            @RequestParam(value = "searchText", required = false) String searchText,
+            @RequestParam(required = false) String excludeInstructions,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String excludeName) {
 
         RecipeFilterRequest filterRequest = new RecipeFilterRequest();
         filterRequest.setIsVegetarian(isVegetarian);
-        filterRequest.setServings(RecipeManagementUtil.validateServings(servings));
+        filterRequest.setServings(RecipeManagementUtil.validateOptionalServings(servings));
         filterRequest.setIncludeIngredients(includeIngredients);
         filterRequest.setExcludeIngredients(excludeIngredients);
-        filterRequest.setSearchText(RecipeManagementUtil.validateSearchText(searchText));
+        filterRequest.setSearchText(RecipeManagementUtil.validateOptionalSearchText(searchText));
+        filterRequest.setExcludeInstructions(RecipeManagementUtil.validateOptionalSearchText(excludeInstructions));
+        filterRequest.setName(RecipeManagementUtil.validateOptionalName(name));
+        filterRequest.setExcludeName(RecipeManagementUtil.validateOptionalName(excludeName));
 
         List<Recipe> filteredRecipes = recipeService.searchRecipes(filterRequest);
         return ResponseEntity.ok(filteredRecipes);

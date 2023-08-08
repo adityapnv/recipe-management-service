@@ -9,6 +9,33 @@ public class RecipeFilterRequest {
     private List<String> includeIngredients;
     private List<String> excludeIngredients;
     private String searchText;
+    private String excludeInstructions;
+    private String name;
+    private String excludeName;
+
+    public String getExcludeInstructions() {
+        return excludeInstructions;
+    }
+
+    public void setExcludeInstructions(String excludeInstructions) {
+        this.excludeInstructions = excludeInstructions;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getExcludeName() {
+        return excludeName;
+    }
+
+    public void setExcludeName(String excludeName) {
+        this.excludeName = excludeName;
+    }
 
     public Boolean getIsVegetarian() {
         return isVegetarian;

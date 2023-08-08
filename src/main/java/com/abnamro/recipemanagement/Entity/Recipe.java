@@ -2,8 +2,6 @@ package com.abnamro.recipemanagement.Entity;
 
 import com.abnamro.recipemanagement.util.RecipeManagementUtil;
 import com.abnamro.recipemanagement.util.ValidIngredients;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -25,7 +23,6 @@ import java.util.List;
 @Entity
 public class Recipe {
 
-    @JsonIgnore
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -33,9 +30,8 @@ public class Recipe {
     @Size(max = RecipeManagementUtil.MAX_LENGTH_NAME, message = "Recipe name must be less than 100 chars")
     @Pattern(regexp = RecipeManagementUtil.PATTERN_STRINGS, message = "Only strings are allowed for recipe name.")
     private String name;
-    @JsonProperty("isVegetarian")
     @NotNull(message = "Recipe type cannot be blank")
-    private Boolean vegetarian;
+    private Boolean isVegetarian;
     @Positive(message = "Number of servings must be greater than zero")
     private int servings;
     @ElementCollection
@@ -46,38 +42,30 @@ public class Recipe {
     @Size(max = RecipeManagementUtil.MAX_LENGTH_INSTRUCTION, message = "Instructions must be less than 255 chars")
     @Pattern(regexp = RecipeManagementUtil.PATTERN_INSTRUCTIONS, message = "Instructions must contain letters and numbers")
     private String instructions;
-    @JsonIgnore
     @Column(updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
-    @JsonIgnore
     @Column
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @JsonProperty
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
-    @JsonIgnore
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
-    @JsonProperty
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
-    @JsonIgnore
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
-    @JsonProperty
     public Long getId() {
         return id;
     }
 
-    @JsonIgnore
     public void setId(Long id) {
         this.id = id;
     }
@@ -90,12 +78,12 @@ public class Recipe {
         this.name = name;
     }
 
-    public boolean isVegetarian() {
-        return vegetarian;
+    public boolean getIsVegetarian() {
+        return isVegetarian;
     }
 
-    public void setVegetarian(boolean vegetarian) {
-        this.vegetarian = vegetarian;
+    public void setIsVegetarian(boolean isVegetarian) {
+        this.isVegetarian = isVegetarian;
     }
 
     public int getServings() {

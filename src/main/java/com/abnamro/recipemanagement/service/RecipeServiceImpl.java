@@ -2,6 +2,7 @@ package com.abnamro.recipemanagement.service;
 
 import com.abnamro.recipemanagement.Entity.Recipe;
 import com.abnamro.recipemanagement.domain.RecipeFilterRequest;
+import com.abnamro.recipemanagement.domain.RecipeRequest;
 import com.abnamro.recipemanagement.exception.RecipeNotFoundException;
 import com.abnamro.recipemanagement.repository.RecipeRepository;
 import com.abnamro.recipemanagement.util.ErrorMessage;
@@ -26,7 +27,7 @@ public class RecipeServiceImpl implements RecipeService {
     public List<Recipe> getAllRecipes() {
         List<Recipe> recipes = recipeRepository.findAll();
         if (recipes.isEmpty()){
-            throw new RecipeNotFoundException(ErrorMessage.RECIPE_NOT_FOUND);
+            throw new RecipeNotFoundException(ErrorMessage.RECIPES_NOT_FOUND);
         }
         return recipes;
     }
@@ -38,24 +39,21 @@ public class RecipeServiceImpl implements RecipeService {
     }
 
     @Override
-    public Recipe addRecipe(Recipe recipe) {
-        return recipeRepository.save(recipe);
+    public Recipe addRecipe(RecipeRequest recipeRequest) {
+        Recipe newRecipe = new Recipe();
+        mapRecipeRequestToRecipe(recipeRequest, newRecipe);
+        return recipeRepository.save(newRecipe);
     }
 
     @Override
-    public Recipe updateRecipe(Long id, Recipe updatedRecipe) {
+    public Recipe updateRecipe(Long id, RecipeRequest updatedRecipeRequest) {
         Recipe existingRecipe = getRecipeById(id);
         if (existingRecipe != null) {
-            existingRecipe.setName(updatedRecipe.getName());
-            existingRecipe.setVegetarian(updatedRecipe.isVegetarian());
-            existingRecipe.setServings(updatedRecipe.getServings());
-            existingRecipe.setIngredients(updatedRecipe.getIngredients());
-            existingRecipe.setInstructions(updatedRecipe.getInstructions());
+            mapRecipeRequestToRecipe(updatedRecipeRequest, existingRecipe);
             return recipeRepository.save(existingRecipe);
         } else {
             throw new RecipeNotFoundException(ErrorMessage.RECIPE_NOT_FOUND + id);
         }
-
     }
 
     @Override
@@ -69,12 +67,12 @@ public class RecipeServiceImpl implements RecipeService {
         }
     }
 
-    @Override
+   @Override
     public List<Recipe> searchRecipes(RecipeFilterRequest filterRequest) {
         Specification<Recipe> spec = Specification.where(null);
 
         if (filterRequest.getIsVegetarian() != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("vegetarian"), filterRequest.getIsVegetarian()));
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("isVegetarian"), filterRequest.getIsVegetarian()));
         }
 
         if (filterRequest.getServings() != null) {
@@ -106,6 +104,21 @@ public class RecipeServiceImpl implements RecipeService {
             spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("instructions")), searchText));
         }
 
+        if (filterRequest.getExcludeInstructions() != null && !filterRequest.getExcludeInstructions().isEmpty()) {
+            String excludeInstructionsText = "%" + filterRequest.getExcludeInstructions().toLowerCase() + "%";
+            spec = spec.and((root, query, cb) -> cb.notLike(cb.lower(root.get("instructions")), excludeInstructionsText));
+        }
+
+        if (filterRequest.getName() != null && !filterRequest.getName().isEmpty()) {
+            String nameText = "%" + filterRequest.getName().toLowerCase() + "%";
+            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("name")), nameText));
+        }
+
+        if (filterRequest.getExcludeName() != null && !filterRequest.getExcludeName().isEmpty()) {
+            String excludeNameText = "%" + filterRequest.getExcludeName().toLowerCase() + "%";
+            spec = spec.and((root, query, cb) -> cb.notLike(cb.lower(root.get("name")), excludeNameText));
+        }
+
         List<Recipe> recipes = recipeRepository.findAll(spec);
         if (recipes.isEmpty()){
             throw new RecipeNotFoundException(ErrorMessage.RECIPE_NOT_FOUND);
@@ -113,6 +126,14 @@ public class RecipeServiceImpl implements RecipeService {
         return recipes;
     }
 
+
+    private void mapRecipeRequestToRecipe(RecipeRequest recipeRequest, Recipe recipe) {
+        recipe.setName(recipeRequest.getName());
+        recipe.setIsVegetarian(recipeRequest.isVegetarian());
+        recipe.setServings(recipeRequest.getServings());
+        recipe.setIngredients(recipeRequest.getIngredients());
+        recipe.setInstructions(recipeRequest.getInstructions());
+    }
 
 }
 
