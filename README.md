@@ -23,8 +23,9 @@ The Recipe Management API provides the following features:
 6. Filter recipes based on the following criteria:
     - Whether or not the dish is vegetarian.
     - The number of servings.
+    - Recipe name search (either include or exclude).
     - Specific ingredients (either include or exclude).
-    - Text search within the instructions.
+    - Text search within the instructions (either include or exclude).
 
 ## Endpoints
 
