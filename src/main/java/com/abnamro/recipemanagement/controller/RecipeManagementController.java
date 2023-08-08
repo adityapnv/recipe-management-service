@@ -82,11 +82,12 @@ public class RecipeManagementController {
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String excludeName) {
 
+        //custom validation for optional request params.
         RecipeFilterRequest filterRequest = new RecipeFilterRequest();
         filterRequest.setIsVegetarian(isVegetarian);
         filterRequest.setServings(RecipeManagementUtil.validateOptionalServings(servings));
-        filterRequest.setIncludeIngredients(includeIngredients);
-        filterRequest.setExcludeIngredients(excludeIngredients);
+        filterRequest.setIncludeIngredients(RecipeManagementUtil.replaceToLowerCaseList(includeIngredients));
+        filterRequest.setExcludeIngredients(RecipeManagementUtil.replaceToLowerCaseList(excludeIngredients));
         filterRequest.setSearchText(RecipeManagementUtil.validateOptionalSearchText(searchText));
         filterRequest.setExcludeInstructions(RecipeManagementUtil.validateOptionalSearchText(excludeInstructions));
         filterRequest.setName(RecipeManagementUtil.validateOptionalName(name));

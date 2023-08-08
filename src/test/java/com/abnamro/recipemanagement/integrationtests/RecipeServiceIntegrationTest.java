@@ -37,8 +37,33 @@ public class RecipeServiceIntegrationTest {
 
     private RecipeService recipeService;
 
+    Recipe recipe1;
+    Recipe recipe2;
+    Recipe recipe3;
+
     @BeforeEach
     public void setUp() {
+        recipe1 = new Recipe();
+        recipe1.setName("Pasta");
+        recipe1.setIsVegetarian(true);
+        recipe1.setInstructions("stove");
+        recipe1.setIngredients(List.of("Pasta", "Tomatoes"));
+        recipe1.setServings(3);
+
+        recipe2 = new Recipe();
+        recipe2.setName("Veggie Burger");
+        recipe2.setIsVegetarian(true);
+        recipe2.setInstructions("oven");
+        recipe2.setIngredients(List.of("Burger Bun", "Lettuce", "Tomatoes"));
+        recipe2.setServings(3);
+
+        recipe3 = new Recipe();
+        recipe3.setName("Chicken Burger");
+        recipe3.setIsVegetarian(false);
+        recipe3.setInstructions("oven");
+        recipe3.setIngredients(List.of("Burger Bun", "Chicken", "Tomatoes"));
+        recipe3.setServings(6);
+
         recipeService = new RecipeServiceImpl(recipeRepository);
     }
 
@@ -49,26 +74,20 @@ public class RecipeServiceIntegrationTest {
 
     @Test
     void testGetRecipeById() {
-        Recipe recipe = new Recipe();
-        recipe.setName("Pasta");
-        recipe.setIngredients(Arrays.asList("Pasta", "Tomatoes"));
-        recipe.setIsVegetarian(true);
-        recipe.setServings(4);
-        recipe.setInstructions("Instructions");
-
-        entityManager.persist(recipe);
+        // Arrange
+        entityManager.persist(recipe1);
         entityManager.flush();
 
         // Act
-        Recipe result = recipeService.getRecipeById(recipe.getId());
+        Recipe result = recipeService.getRecipeById(recipe1.getId());
 
         // Assert
-        assertEquals(recipe.getId(), result.getId());
+        assertEquals(recipe1.getId(), result.getId());
         assertEquals("Pasta", result.getName());
         assertTrue(result.getIsVegetarian());
-        assertEquals(4, result.getServings());
-        assertEquals(Arrays.asList("Pasta", "Tomatoes"), result.getIngredients());
-        assertEquals("Instructions", result.getInstructions());
+        assertEquals(3, result.getServings());
+        assertEquals(recipe1.getIngredients(), result.getIngredients());
+        assertEquals(recipe1.getInstructions(), result.getInstructions());
     }
 
     @Test
@@ -82,30 +101,95 @@ public class RecipeServiceIntegrationTest {
     }
 
     @Test
-    void testFilterRecipes() {
+    void testFilterVegetarianRecipes() {
         // Arrange
-        Recipe recipe1 = new Recipe();
-        recipe1.setName("Pasta Recipe");
-        recipe1.setIngredients(Arrays.asList("Pasta", "Tomatoes"));
-        recipe1.setIsVegetarian(true);
-        recipe1.setServings(4);
-        recipe1.setInstructions("Instructions");
-        Recipe recipe2 = new Recipe();
-        recipe2.setName("Veggie Burger");
-        recipe2.setIngredients(Arrays.asList("Burger Bun", "Lettuce", "Tomatoes"));
-        recipe2.setIsVegetarian(true);
-        recipe2.setServings(2);
-        recipe2.setInstructions("Instructions");
         entityManager.persist(recipe1);
         entityManager.persist(recipe2);
+        entityManager.persist(recipe3);
         entityManager.flush();
 
         RecipeFilterRequest filterRequest = new RecipeFilterRequest();
         filterRequest.setIsVegetarian(true);
-        filterRequest.setServings(4);
+        // Act
+        List<Recipe> result = recipeService.searchRecipes(filterRequest);
+        // Assert
+        assertEquals(2, result.size());
+        assertEquals(recipe1.getId(), result.get(0).getId());
+        assertEquals("Pasta", result.get(0).getName());
+        assertEquals("Veggie Burger", result.get(1).getName());
+    }
+
+    @Test
+    void testFilterVegetarianRecipesWithNumberOfServings() {
+        // Arrange
+        entityManager.persist(recipe1);
+        entityManager.persist(recipe2);
+        entityManager.persist(recipe3);
+        entityManager.flush();
+
+        RecipeFilterRequest filterRequest = new RecipeFilterRequest();
+        filterRequest.setIsVegetarian(true);
+        filterRequest.setServings(3);
+        // Act
+        List<Recipe> result = recipeService.searchRecipes(filterRequest);
+        // Assert
+        assertEquals(2, result.size());
+        assertEquals(recipe1.getId(), result.get(0).getId());
+        assertEquals("Pasta", result.get(0).getName());
+        assertEquals("Veggie Burger", result.get(1).getName());
+    }
+
+    @Test
+    void testFilterRecipesWithName() {
+        // Arrange
+        entityManager.persist(recipe1);
+        entityManager.persist(recipe2);
+        entityManager.persist(recipe3);
+        entityManager.flush();
+
+        RecipeFilterRequest filterRequest = new RecipeFilterRequest();
+        filterRequest.setName("Burger");
+        // Act
+        List<Recipe> result = recipeService.searchRecipes(filterRequest);
+        // Assert
+        assertEquals(2, result.size());
+        assertEquals("Veggie Burger", result.get(0).getName());
+        assertEquals("Chicken Burger", result.get(1).getName());
+    }
+
+    @Test
+    void testFilterRecipesWithIncludingAndExcludingIngredients() {
+        // Arrange
+        entityManager.persist(recipe1);
+        entityManager.persist(recipe2);
+        entityManager.persist(recipe3);
+        entityManager.flush();
+
+        RecipeFilterRequest filterRequest = new RecipeFilterRequest();
+        filterRequest.setIncludeIngredients(List.of("Burger Bun", "Tomatoes"));
+        filterRequest.setExcludeIngredients(List.of("Chicken"));
+        // Act
+        List<Recipe> result = recipeService.searchRecipes(filterRequest);
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals("Veggie Burger", result.get(0).getName());
+    }
+
+    @Test
+    void testFilterRecipes() {
+        // Arrange
+        entityManager.persist(recipe1);
+        entityManager.persist(recipe2);
+        entityManager.persist(recipe3);
+        entityManager.flush();
+
+        RecipeFilterRequest filterRequest = new RecipeFilterRequest();
+        filterRequest.setIsVegetarian(true);
+        filterRequest.setServings(3);
         filterRequest.setIncludeIngredients(Arrays.asList("Pasta", "Tomatoes"));
         filterRequest.setExcludeIngredients(List.of("Salmon"));
-        filterRequest.setSearchText("Instructions");
+        filterRequest.setSearchText("stove");
+        filterRequest.setName("Pasta");
 
         // Act
         List<Recipe> result = recipeService.searchRecipes(filterRequest);
@@ -113,7 +197,7 @@ public class RecipeServiceIntegrationTest {
         // Assert
         assertEquals(1, result.size());
         assertEquals(recipe1.getId(), result.get(0).getId());
-        assertEquals("Pasta Recipe", result.get(0).getName());
+        assertEquals("Pasta", result.get(0).getName());
     }
 
     @Test
@@ -134,20 +218,15 @@ public class RecipeServiceIntegrationTest {
         assertEquals("Pasta", result.getName());
         assertTrue(result.getIsVegetarian());
         assertEquals(4, result.getServings());
-        assertEquals(Arrays.asList("Pasta", "Tomatoes"), result.getIngredients());
+        assertEquals(Arrays.asList("pasta", "tomatoes"), result.getIngredients());
         assertEquals("Instructions", result.getInstructions());
     }
 
    @Test
     void testUpdateRecipe() {
         // Arrange
-        Recipe recipe = new Recipe();
-        recipe.setName("Pasta");
-        recipe.setIngredients(Arrays.asList("Pasta", "Tomatoes"));
-        recipe.setIsVegetarian(true);
-        recipe.setServings(3);
-        recipe.setInstructions("Instructions");
-        entityManager.persist(recipe);
+
+        entityManager.persist(recipe2);
         entityManager.flush();
 
         RecipeRequest recipeRequest = new RecipeRequest();
@@ -158,14 +237,14 @@ public class RecipeServiceIntegrationTest {
         recipeRequest.setInstructions("Updated Instructions");
 
         // Act
-        Recipe result = recipeService.updateRecipe(recipe.getId(), recipeRequest);
+        Recipe result = recipeService.updateRecipe(recipe2.getId(), recipeRequest);
 
         // Assert
-        assertEquals(recipe.getId(), result.getId());
+        assertEquals(recipe2.getId(), result.getId());
         assertEquals("Updated Pasta", result.getName());
         assertFalse(result.getIsVegetarian());
         assertEquals(3, result.getServings());
-        assertEquals(Arrays.asList("Pasta", "Tomatoes", "Cheese"), result.getIngredients());
+        assertEquals(List.of("pasta", "tomatoes", "cheese"), result.getIngredients());
         assertEquals("Updated Instructions", result.getInstructions());
     }
 
@@ -182,20 +261,14 @@ public class RecipeServiceIntegrationTest {
     @Test
     void testRemoveRecipe() {
         // Arrange
-        Recipe recipe = new Recipe();
-        recipe.setName("Pasta");
-        recipe.setIngredients(Arrays.asList("Pasta", "Tomatoes"));
-        recipe.setIsVegetarian(true);
-        recipe.setServings(10);
-        recipe.setInstructions("Instructions");
-        entityManager.persist(recipe);
+        entityManager.persist(recipe3);
         entityManager.flush();
 
         // Act
-        recipeService.removeRecipe(recipe.getId());
+        recipeService.removeRecipe(recipe3.getId());
 
         // Assert
-        assertFalse(recipeRepository.existsById(recipe.getId()));
+        assertFalse(recipeRepository.existsById(recipe3.getId()));
     }
 
     @Test
@@ -210,29 +283,19 @@ public class RecipeServiceIntegrationTest {
     @Test
     public void testGetAllRecipes() {
         // Arrange
-        Recipe recipe1 = new Recipe();
-        recipe1.setName("Pasta");
-        recipe1.setIngredients(Arrays.asList("Pasta", "Tomatoes"));
-        recipe1.setIsVegetarian(true);
-        recipe1.setServings(4);
-        recipe1.setInstructions("Instructions");
-        Recipe recipe2 = new Recipe();
-        recipe2.setName("Veggie Burger");
-        recipe2.setIngredients(Arrays.asList("Burger Bun", "Lettuce", "Tomatoes"));
-        recipe2.setIsVegetarian(true);
-        recipe2.setServings(2);
-        recipe2.setInstructions("Instructions");
         entityManager.persist(recipe1);
         entityManager.persist(recipe2);
+        entityManager.persist(recipe3);
         entityManager.flush();
 
         // Act
         List<Recipe> recipes = recipeService.getAllRecipes();
 
         // Assert
-        assertEquals(2, recipes.size());
+        assertEquals(3, recipes.size());
         assertEquals("Pasta", recipes.get(0).getName());
         assertEquals("Veggie Burger", recipes.get(1).getName());
+        assertEquals("Chicken Burger", recipes.get(2).getName());
     }
 
     @Test

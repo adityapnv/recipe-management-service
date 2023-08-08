@@ -53,6 +53,7 @@ public class RecipeManagementControllerTest {
         recipe1.setIsVegetarian(true);
         recipe1.setInstructions("oven");
         recipe1.setIngredients(List.of("test1"));
+        recipe1.setServings(3);
 
         recipe2 = new Recipe();
         recipe2.setId(2L);
@@ -60,6 +61,7 @@ public class RecipeManagementControllerTest {
         recipe2.setIsVegetarian(true);
         recipe2.setInstructions("oven");
         recipe2.setIngredients(List.of("test1"));
+        recipe2.setServings(6);
 
     }
 
@@ -81,7 +83,7 @@ public class RecipeManagementControllerTest {
                         .contentType("application/json")
                         .content(new ObjectMapper().writeValueAsString(recipeRequest)))
                 .andExpect(MockMvcResultMatchers.status().isCreated())
-                .andExpect(content().string("{\"id\":1,\"name\":\"Test Recipe\",\"isVegetarian\":true,\"servings\":0,\"ingredients\":[\"test1\"],\"instructions\":\"oven\",\"createdAt\":null,\"updatedAt\":null}"));
+                .andExpect(content().string("{\"id\":1,\"name\":\"Test Recipe\",\"isVegetarian\":true,\"servings\":3,\"ingredients\":[\"test1\"],\"instructions\":\"oven\",\"createdAt\":null,\"updatedAt\":null}"));
     }
 
     @Test

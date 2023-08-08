@@ -1,6 +1,10 @@
 package com.abnamro.recipemanagement.util;
 
 import com.abnamro.recipemanagement.exception.RecipeInvalidFilterException;
+import org.springframework.util.CollectionUtils;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class RecipeManagementUtil {
 
@@ -48,6 +52,15 @@ public class RecipeManagementUtil {
         } else {
             throw new RecipeInvalidFilterException();
         }
+    }
+
+    public static List<String> replaceToLowerCaseList (List<String> strings){
+        if(CollectionUtils.isEmpty(strings)){
+            return strings;
+        }
+        return strings.stream()
+                .map(String::toLowerCase)
+                .collect(Collectors.toList());
     }
 
     private static boolean isValidPositiveNumber(String input) {

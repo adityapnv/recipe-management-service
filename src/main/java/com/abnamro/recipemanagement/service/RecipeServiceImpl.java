@@ -6,6 +6,8 @@ import com.abnamro.recipemanagement.domain.RecipeRequest;
 import com.abnamro.recipemanagement.exception.RecipeNotFoundException;
 import com.abnamro.recipemanagement.repository.RecipeRepository;
 import com.abnamro.recipemanagement.util.ErrorMessage;
+import com.abnamro.recipemanagement.util.RecipeManagementUtil;
+import com.abnamro.recipemanagement.util.RecipeSpecifications;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,57 +71,8 @@ public class RecipeServiceImpl implements RecipeService {
 
    @Override
     public List<Recipe> searchRecipes(RecipeFilterRequest filterRequest) {
-        Specification<Recipe> spec = Specification.where(null);
-
-        if (filterRequest.getIsVegetarian() != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("isVegetarian"), filterRequest.getIsVegetarian()));
-        }
-
-        if (filterRequest.getServings() != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("servings"), filterRequest.getServings()));
-        }
-
-        if (filterRequest.getIncludeIngredients() != null && !filterRequest.getIncludeIngredients().isEmpty()) {
-            spec = spec.and((root, query, cb) -> {
-                List<Predicate> ingredientPredicates = new ArrayList<>();
-                for (String ingredient : filterRequest.getIncludeIngredients()) {
-                    ingredientPredicates.add(cb.isMember(ingredient, root.get("ingredients")));
-                }
-                return cb.and(ingredientPredicates.toArray(new Predicate[0]));
-            });
-        }
-
-        if (filterRequest.getExcludeIngredients() != null && !filterRequest.getExcludeIngredients().isEmpty()) {
-            spec = spec.and((root, query, cb) -> {
-                List<Predicate> ingredientPredicates = new ArrayList<>();
-                for (String ingredient : filterRequest.getExcludeIngredients()) {
-                    ingredientPredicates.add(cb.isNotMember(ingredient, root.get("ingredients")));
-                }
-                return cb.and(ingredientPredicates.toArray(new Predicate[0]));
-            });
-        }
-
-        if (filterRequest.getSearchText() != null && !filterRequest.getSearchText().isEmpty()) {
-            String searchText = "%" + filterRequest.getSearchText().toLowerCase() + "%";
-            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("instructions")), searchText));
-        }
-
-        if (filterRequest.getExcludeInstructions() != null && !filterRequest.getExcludeInstructions().isEmpty()) {
-            String excludeInstructionsText = "%" + filterRequest.getExcludeInstructions().toLowerCase() + "%";
-            spec = spec.and((root, query, cb) -> cb.notLike(cb.lower(root.get("instructions")), excludeInstructionsText));
-        }
-
-        if (filterRequest.getName() != null && !filterRequest.getName().isEmpty()) {
-            String nameText = "%" + filterRequest.getName().toLowerCase() + "%";
-            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("name")), nameText));
-        }
-
-        if (filterRequest.getExcludeName() != null && !filterRequest.getExcludeName().isEmpty()) {
-            String excludeNameText = "%" + filterRequest.getExcludeName().toLowerCase() + "%";
-            spec = spec.and((root, query, cb) -> cb.notLike(cb.lower(root.get("name")), excludeNameText));
-        }
-
-        List<Recipe> recipes = recipeRepository.findAll(spec);
+       Specification<Recipe> spec = RecipeSpecifications.getRecipeSpecification(filterRequest);
+       List<Recipe> recipes = recipeRepository.findAll(spec);
         if (recipes.isEmpty()){
             throw new RecipeNotFoundException(ErrorMessage.RECIPE_NOT_FOUND);
         }
@@ -131,7 +84,7 @@ public class RecipeServiceImpl implements RecipeService {
         recipe.setName(recipeRequest.getName());
         recipe.setIsVegetarian(recipeRequest.isVegetarian());
         recipe.setServings(recipeRequest.getServings());
-        recipe.setIngredients(recipeRequest.getIngredients());
+        recipe.setIngredients(RecipeManagementUtil.replaceToLowerCaseList(recipeRequest.getIngredients()));
         recipe.setInstructions(recipeRequest.getInstructions());
     }
 
