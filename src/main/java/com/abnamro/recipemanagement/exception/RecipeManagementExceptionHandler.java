@@ -2,6 +2,8 @@ package com.abnamro.recipemanagement.exception;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -16,6 +18,8 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class RecipeManagementExceptionHandler {
+
+    private static final Logger LOGGER= LoggerFactory.getLogger(RecipeManagementExceptionHandler.class);
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException ex) {
@@ -66,6 +70,7 @@ public class RecipeManagementExceptionHandler {
     }
 
     private static ErrorResponse getErrorResponse(HttpStatus responseCode,String errorMessage) {
+        LOGGER.error("exception occurred with response code - {} and error message - {} ", responseCode, errorMessage);
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setStatus(responseCode.value());
         errorResponse.setMessage(errorMessage);

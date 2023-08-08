@@ -6,6 +6,8 @@ import com.abnamro.recipemanagement.domain.RecipeRequest;
 import com.abnamro.recipemanagement.service.RecipeService;
 import com.abnamro.recipemanagement.util.RecipeManagementUtil;
 import com.abnamro.recipemanagement.util.ValidIngredients;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,8 @@ import java.util.List;
 @RequestMapping("/recipes")
 @Validated
 public class RecipeManagementController {
+
+    private final Logger logger = LoggerFactory.getLogger(RecipeManagementController.class);
     private final RecipeService recipeService;
 
     public RecipeManagementController(RecipeService recipeService) {
@@ -37,6 +41,7 @@ public class RecipeManagementController {
 
     @GetMapping
     public ResponseEntity<List<Recipe>> getAllRecipes() {
+        logger.info("Getting all recipes");
         List<Recipe> recipes = recipeService.getAllRecipes();
         return ResponseEntity.ok(recipes);
     }
@@ -44,12 +49,14 @@ public class RecipeManagementController {
     @PostMapping
     @Transactional
     public ResponseEntity<Recipe> addRecipe(@Valid @RequestBody RecipeRequest recipeRequest) {
+        logger.info("Creating the recipe");
         Recipe recipe = recipeService.addRecipe(recipeRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(recipe);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Recipe> getRecipeById(@PathVariable @Positive Long id) {
+        logger.info("Getting the recipe by id : {}", id);
         Recipe recipe = recipeService.getRecipeById(id);
         return ResponseEntity.ok(recipe);
     }
@@ -58,6 +65,7 @@ public class RecipeManagementController {
     @Transactional
     public ResponseEntity<Recipe> updateRecipe(@PathVariable @Positive @NotNull Long id,
             @Valid @RequestBody RecipeRequest recipeRequest) {
+        logger.info("Updating the recipe by id : {}", id);
         Recipe updatedRecipe = recipeService.updateRecipe(id, recipeRequest);
         return ResponseEntity.ok(updatedRecipe);
     }
@@ -65,6 +73,7 @@ public class RecipeManagementController {
     @DeleteMapping("/{id}")
     @Transactional
     public ResponseEntity<String> deleteRecipe(@PathVariable @Positive @NotNull Long id) {
+        logger.info("Deleting the recipe by id : {}", id);
         recipeService.removeRecipe(id);
         return ResponseEntity.ok("Recipe deleted successfully.");
     }
@@ -81,6 +90,8 @@ public class RecipeManagementController {
             @RequestParam(required = false) String excludeInstructions,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String excludeName) {
+
+        logger.info("filtering the recipes by criteria");
 
         //custom validation for optional request params.
         RecipeFilterRequest filterRequest = new RecipeFilterRequest();

@@ -72,7 +72,7 @@ public class RecipeServiceImpl implements RecipeService {
        Specification<Recipe> spec = RecipeSpecifications.getRecipeSpecification(filterRequest);
        List<Recipe> recipes = recipeRepository.findAll(spec);
         if (recipes.isEmpty()){
-            throw new RecipeNotFoundException(ErrorMessage.RECIPE_NOT_FOUND);
+            throw new RecipeNotFoundException(ErrorMessage.RECIPES_NOT_FOUND);
         }
         return recipes;
     }
