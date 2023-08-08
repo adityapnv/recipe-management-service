@@ -3,68 +3,73 @@ package com.abnamro.recipemanagement.util;
 import com.abnamro.recipemanagement.Entity.Recipe;
 import com.abnamro.recipemanagement.domain.RecipeFilterRequest;
 import org.springframework.data.jpa.domain.Specification;
-
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
 public class RecipeSpecifications {
 
     public static Specification<Recipe> getRecipeSpecification(RecipeFilterRequest filterRequest) {
-        Specification<Recipe> spec = Specification.where(null);
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
 
-        if (filterRequest.getIsVegetarian() != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("isVegetarian"), filterRequest.getIsVegetarian()));
-        }
+            addEqualPredicate(predicates, cb, root.get("isVegetarian"), filterRequest.getIsVegetarian());
+            addEqualPredicate(predicates, cb, root.get("servings"), filterRequest.getServings());
 
-        if (filterRequest.getServings() != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("servings"), filterRequest.getServings()));
-        }
+            addIngredientPredicates(predicates, cb, root, filterRequest.getIncludeIngredients(), true);
+            addIngredientPredicates(predicates, cb, root, filterRequest.getExcludeIngredients(), false);
 
-        if (filterRequest.getIncludeIngredients() != null && !filterRequest.getIncludeIngredients().isEmpty()) {
-            spec = spec.and((root, query, cb) -> {
-                List<Predicate> ingredientPredicates = new ArrayList<>();
-                for (String ingredient : filterRequest.getIncludeIngredients()) {
-                    ingredientPredicates.add(cb.isMember(ingredient, root.get("ingredients")));
-                }
-                return cb.and(ingredientPredicates.toArray(new Predicate[0]));
-            });
-        }
+            addLikePredicate(predicates, cb, cb.lower(root.get("instructions")), filterRequest.getSearchText());
+            addLikePredicate(predicates, cb, cb.lower(root.get("name")), filterRequest.getName());
 
-        if (filterRequest.getExcludeIngredients() != null && !filterRequest.getExcludeIngredients().isEmpty()) {
-            spec = spec.and((root, query, cb) -> {
-                List<Predicate> ingredientPredicates = new ArrayList<>();
-                for (String ingredient : filterRequest.getExcludeIngredients()) {
-                    ingredientPredicates.add(cb.isNotMember(ingredient, root.get("ingredients")));
-                }
-                return cb.and(ingredientPredicates.toArray(new Predicate[0]));
-            });
-        }
+            addNotLikePredicate(predicates, cb, cb.lower(root.get("instructions")), filterRequest.getExcludeInstructions());
+            addNotLikePredicate(predicates, cb, cb.lower(root.get("name")), filterRequest.getExcludeName());
 
-        if (filterRequest.getSearchText() != null && !filterRequest.getSearchText().isEmpty()) {
-            String searchText = "%" + filterRequest.getSearchText().toLowerCase() + "%";
-            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("instructions")), searchText));
-        }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
 
-        if (filterRequest.getExcludeInstructions() != null && !filterRequest.getExcludeInstructions().isEmpty()) {
-            String excludeInstructionsText = "%" + filterRequest.getExcludeInstructions().toLowerCase() + "%";
-            spec = spec.and((root, query, cb) -> cb.notLike(cb.lower(root.get("instructions")), excludeInstructionsText));
+    private static void addEqualPredicate(List<Predicate> predicates, CriteriaBuilder cb, Expression<?> expression, Object value) {
+        if (value != null) {
+            predicates.add(cb.equal(expression, value));
         }
+    }
 
-        if (filterRequest.getName() != null && !filterRequest.getName().isEmpty()) {
-            String nameText = "%" + filterRequest.getName().toLowerCase() + "%";
-            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("name")), nameText));
-        }
+    //
+    private static void addIngredientPredicates(List<Predicate> predicates, CriteriaBuilder cb, Root<Recipe> root, List<String> ingredients, boolean isInclusion) {
+        if (ingredients != null && !ingredients.isEmpty()) {
+            List<Predicate> ingredientPredicates = new ArrayList<>();
+            for (String ingredient : ingredients) {
+                Predicate predicate = isInclusion ?
+                        cb.isMember(ingredient, root.get("ingredients")) :
+                        cb.isNotMember(ingredient, root.get("ingredients"));
+                ingredientPredicates.add(predicate);
+            }
 
-        if (filterRequest.getExcludeName() != null && !filterRequest.getExcludeName().isEmpty()) {
-            String excludeNameText = "%" + filterRequest.getExcludeName().toLowerCase() + "%";
-            spec = spec.and((root, query, cb) -> cb.notLike(cb.lower(root.get("name")), excludeNameText));
+            Predicate ingredientPredicate = isInclusion ?
+                    cb.and(ingredientPredicates.toArray(new Predicate[0])) :
+                    cb.or(ingredientPredicates.toArray(new Predicate[0]));
+
+            predicates.add(ingredientPredicate);
         }
-        return spec;
+    }
+
+    private static void addLikePredicate(List<Predicate> predicates, CriteriaBuilder cb, Expression<String> expression, String value) {
+        if (value != null && !value.isEmpty()) {
+            predicates.add(cb.like(expression, "%" + value.toLowerCase() + "%"));
+        }
+    }
+
+    private static void addNotLikePredicate(List<Predicate> predicates, CriteriaBuilder cb, Expression<String> expression, String value) {
+        if (value != null && !value.isEmpty()) {
+            predicates.add(cb.notLike(expression, "%" + value.toLowerCase() + "%"));
+        }
     }
 
 }
-
 
 
 

@@ -140,6 +140,26 @@ public class RecipeServiceIntegrationTest {
     }
 
     @Test
+    void testFilterVegetarianRecipesWithNumberOfServingsAndInstructions() {
+        // Arrange
+        entityManager.persist(recipe1);
+        entityManager.persist(recipe2);
+        entityManager.persist(recipe3);
+        entityManager.flush();
+
+        RecipeFilterRequest filterRequest = new RecipeFilterRequest();
+        filterRequest.setIsVegetarian(true);
+        filterRequest.setServings(3);
+        filterRequest.setSearchText("stove");
+        // Act
+        List<Recipe> result = recipeService.searchRecipes(filterRequest);
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals(recipe1.getId(), result.get(0).getId());
+        assertEquals("Pasta", result.get(0).getName());
+    }
+
+    @Test
     void testFilterRecipesWithName() {
         // Arrange
         entityManager.persist(recipe1);
@@ -158,6 +178,24 @@ public class RecipeServiceIntegrationTest {
     }
 
     @Test
+    void testFilterVegetarianRecipesByExcludingName() {
+        // Arrange
+        entityManager.persist(recipe1);
+        entityManager.persist(recipe2);
+        entityManager.persist(recipe3);
+        entityManager.flush();
+
+        RecipeFilterRequest filterRequest = new RecipeFilterRequest();
+        filterRequest.setIsVegetarian(true);
+        filterRequest.setExcludeName("Burger");
+        // Act
+        List<Recipe> result = recipeService.searchRecipes(filterRequest);
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals("Pasta", result.get(0).getName());
+    }
+
+    @Test
     void testFilterRecipesWithIncludingAndExcludingIngredients() {
         // Arrange
         entityManager.persist(recipe1);
@@ -166,6 +204,25 @@ public class RecipeServiceIntegrationTest {
         entityManager.flush();
 
         RecipeFilterRequest filterRequest = new RecipeFilterRequest();
+        filterRequest.setIncludeIngredients(List.of("Burger Bun", "Tomatoes"));
+        filterRequest.setExcludeIngredients(List.of("Chicken"));
+        // Act
+        List<Recipe> result = recipeService.searchRecipes(filterRequest);
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals("Veggie Burger", result.get(0).getName());
+    }
+
+    @Test
+    void testFilterRecipesWithIncludingAndExcludingIngredientsAndName() {
+        // Arrange
+        entityManager.persist(recipe1);
+        entityManager.persist(recipe2);
+        entityManager.persist(recipe3);
+        entityManager.flush();
+
+        RecipeFilterRequest filterRequest = new RecipeFilterRequest();
+        filterRequest.setName("Burger");
         filterRequest.setIncludeIngredients(List.of("Burger Bun", "Tomatoes"));
         filterRequest.setExcludeIngredients(List.of("Chicken"));
         // Act
